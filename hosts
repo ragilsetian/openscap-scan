@@ -1,0 +1,6 @@
+[local]
+10.252.10.30 ansible_connection=local
+
+[remote]
+10.252.10.10 ansible_ssh_host=10.252.10.10
+10.252.10.20 ansible_ssh_host=10.252.10.20

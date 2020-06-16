@@ -1,0 +1,10 @@
+--- 
+ip_address: 
+  - "10.252.10.10"
+  - "10.252.10.20"
+oscap_policy: rhel-7.oval
+oscap_profile:
+  - "xccdf_org.ssgproject.content_profile_pci-dss"
+  - "xccdf_org.ssgproject.content_profile_standard"
+  - "xccdf_org.ssgproject.content_profile_rht-ccp"
+  - "xccdf_org.ssgproject.content_profile_stig"

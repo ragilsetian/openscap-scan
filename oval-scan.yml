@@ -1,0 +1,34 @@
+- name: install packages
+  hosts: remote
+  tasks:
+  - name: install openscap scanner
+    package:
+      name: openscap-scanner
+      state: latest
+
+- name: Oval Scan with Openscap
+  hosts: local
+  become: yes
+  vars_files: "group_vars/main.yml"
+  tasks:
+  - block:
+    - name: generate timestamp
+      command: >
+         date +%Y%m%d%H%M%SZ
+      register: timestamp
+
+    - name: run openscap
+      command: >
+         oscap-ssh root@{{ item }} 22 oval eval
+         --results /tmp/{{ item }}-{{ timestamp.stdout }}.xml
+         --report /var/www/html/{{ item }}-{{ timestamp.stdout }}.html
+         /root/data-oval/{{ oscap_policy }}.xml
+      with_items: "{{ ip_address }}"
+
+- name: remove packages
+  hosts: remote
+  tasks:
+  - name: remove openscap & scap security guide
+    package:
+      name: openscap-scanner
+      state: absent

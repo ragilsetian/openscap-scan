@@ -1,0 +1,49 @@
+- name: install packages
+  hosts: remote
+  tasks:
+  - name: install openscap scanner
+    package:
+      name: openscap-scanner
+      state: latest
+
+- name: Oval Scan with Openscap
+  hosts: local
+  become: yes
+  vars_files: "group_vars/main.yml"
+  tasks:
+  - block:
+    - name: generate timestamp
+      command: >
+         date +%Y%m%d%H%M%SZ
+      register: timestamp
+
+    - name: run openscap
+      command: >
+         oscap-ssh root@{{ item }} 22 xccdf eval
+         --profile {{ oscap_profile }}
+         --results /tmp/{{ item }}-{{ timestamp.stdout }}.xml
+         --report /var/www/html/{{ item }}-{{ timestamp.stdout }}.html
+         /root/data-oval/{{ oscap_policy }}.xml
+      with_items: "{{ ip_address }}"
+
+    - name: Generate playbook remediation
+      command: >
+         oscap xccdf generate
+         --profile {{ oscap_profile }}
+         fix --fix-type ansible
+         --output /var/lib/awx/projects/scanner0/{{ item }}-{{ timestamp.stdout }}.yml /tmp/{{ item }}-{{ timestamp.stdout }}.xml
+      with_items: "{{ ip_address }}"
+     
+    - name: test
+      file:
+       path: /var/lib/awx/projects/scanner0/
+       owner: "awx"
+       group: "awx"
+
+- name: remove packages on remote host
+  hosts: remote
+  tasks:
+  - name: remove openscap & scap security guide
+    package:
+      name: openscap-scanner
+      state: absent
